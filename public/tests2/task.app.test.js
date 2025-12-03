@@ -102,4 +102,47 @@ describe("Task logic functions", () => {
     const result = deleteTask(tasks, "t1");
     expect(result.length).toBe(0);
   });
+
+  describe("Task logic - additional tests", () => {
+it("does not create a task with invalid payload", () => {
+const tasks = [];
+const payload = { topic: " " }; // invalid topic
+const now = 1000;
+const result = createTask(tasks, payload, now);
+expect(result.length).toBe(0);
+});
+
+it("updateTask does not change tasks if ID not found", () => {
+const tasks = [{ id: "t1", topic: "Old" }];
+const updated = updateTask(tasks, "nonexistent", { topic: "New" }, 1000);
+expect(updated).toEqual(tasks);
+});
+
+it("toggleComplete correctly toggles multiple times", () => {
+let tasks = [{ id: "t1", topic: "Task", completed: false, status: "todo" }];
+const now = 1000;
+tasks = toggleComplete(tasks, "t1", now);
+expect(tasks[0].completed).toBe(true);
+expect(tasks[0].status).toBe("done");
+tasks = toggleComplete(tasks, "t1", now + 1);
+expect(tasks[0].completed).toBe(false);
+expect(tasks[0].status).toBe("todo");
+});
+
+it("deleteTask does nothing if ID not found", () => {
+const tasks = [{ id: "t1", topic: "Task" }];
+const result = deleteTask(tasks, "nonexistent");
+expect(result).toEqual(tasks);
+});
+
+it("validateTask returns false for missing topic", () => {
+expect(validateTask({})).toBe(false);
+expect(validateTask({ topic: "" })).toBe(false);
+expect(validateTask({ topic: " " })).toBe(false);
+});
+
+it("validateTask returns true for valid topic", () => {
+expect(validateTask({ topic: "Valid" })).toBe(true);
+});
+});
 });
