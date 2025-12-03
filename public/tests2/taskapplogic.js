@@ -1,5 +1,3 @@
-// src/taskAppLogic.js
-
 export function generateId() {
   return (
     't_' +
