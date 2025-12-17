@@ -1,37 +1,48 @@
-name: CI
+name: CI – Unit & E2E Tests
 
 on:
   push:
-    branches: [ "**" ]
+    branches:
+      - testing
   pull_request:
+    branches:
+      - testing
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout repo
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Node 20
-      - name: Use Node.js 20
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
-      # Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      # Run Unit Tests (Vitest)
-      - name: Run Unit Tests
-        run: npm run test -- --run
+      # =========================
+      # Unit tests (Vitest)
+      # =========================
+      - name: Run unit tests
+        run: npm run test
 
-      # Run Cypress Tests
-      - name: Cypress Tests
+      # =========================
+      # E2E tests (Cypress)
+      # =========================
+      - name: Start dev server
+        run: npm run dev &
+      
+      - name: Wait for app to be ready
+        run: npx wait-on http://localhost:5173
+
+      - name: Run Cypress E2E tests
         uses: cypress-io/github-action@v6
         with:
-          start: npm run dev
-          wait-on: 'http://localhost:5173'
           browser: chrome
+          wait-on: http://localhost:5173
+          wait-on-timeout: 60000
