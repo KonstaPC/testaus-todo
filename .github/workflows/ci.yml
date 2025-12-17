@@ -1,10 +1,12 @@
-name: CI
+name: CI – Unit & E2E Tests
 
 on:
   push:
-    branches: [ "testing" ]
+    branches:
+      - testing
   pull_request:
-    branches: [ "testing" ]
+    branches:
+      - testing
 
 jobs:
   test:
@@ -14,20 +16,33 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Setup Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Run Unit Tests (Vitest)
+      # =========================
+      # Unit tests (Vitest)
+      # =========================
+      - name: Run unit tests
         run: npm run test
 
-      - name: Run Cypress E2E Tests
+      # =========================
+      # E2E tests (Cypress)
+      # =========================
+      - name: Start dev server
+        run: npm run dev &
+      
+      - name: Wait for app to be ready
+        run: npx wait-on http://localhost:5173
+
+      - name: Run Cypress E2E tests
         uses: cypress-io/github-action@v6
         with:
-          start: npm run dev
-          wait-on: http://localhost:5173
           browser: chrome
+          wait-on: http://localhost:5173
+          wait-on-timeout: 60000
