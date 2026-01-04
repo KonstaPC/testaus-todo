@@ -174,4 +174,76 @@ describe("Todo App E2E Tests", () => {
   cy.get("#status").should("have.value", "todo");
   cy.get("#task-id").should("have.value", "");
   });
+
+    it("filters tasks by High priority", () => {
+    // Create tasks with different priorities
+    cy.get("#topic").type("Low task");
+    cy.get("#priority").select("low");
+    cy.get("#save-btn").click();
+
+    cy.get("#topic").type("High task");
+    cy.get("#priority").select("high");
+    cy.get("#save-btn").click();
+
+    cy.get("#topic").type("Medium task");
+    cy.get("#priority").select("medium");
+    cy.get("#save-btn").click();
+
+    // Apply High filter
+    cy.get('#filters button[data-filter="high"]').click();
+
+    // Only High task should be visible
+    cy.get("#task-list li").should("have.length", 1);
+    cy.get("#task-list li .title").should("contain.text", "High task");
+  });
+
+  it("filters tasks by Medium priority", () => {
+    cy.get("#topic").type("Medium task");
+    cy.get("#priority").select("medium");
+    cy.get("#save-btn").click();
+
+    cy.get("#topic").type("High task");
+    cy.get("#priority").select("high");
+    cy.get("#save-btn").click();
+
+    cy.get('#filters button[data-filter="medium"]').click();
+
+    cy.get("#task-list li").should("have.length", 1);
+    cy.get("#task-list li .title").should("contain.text", "Medium task");
+  });
+
+  it("shows all tasks again when Show all filter is selected", () => {
+    cy.get("#topic").type("Task 1");
+    cy.get("#priority").select("low");
+    cy.get("#save-btn").click();
+
+    cy.get("#topic").type("Task 2");
+    cy.get("#priority").select("high");
+    cy.get("#save-btn").click();
+
+    // Apply filter
+    cy.get('#filters button[data-filter="high"]').click();
+    cy.get("#task-list li").should("have.length", 1);
+
+    // Remove filter
+    cy.get('#filters button[data-filter="all"]').click();
+    cy.get("#task-list li").should("have.length", 2);
+  });
+
+  it("does not delete tasks from localStorage when filtering", () => {
+    cy.get("#topic").type("Persistent High task");
+    cy.get("#priority").select("high");
+    cy.get("#save-btn").click();
+
+    cy.get("#topic").type("Persistent Low task");
+    cy.get("#priority").select("low");
+    cy.get("#save-btn").click();
+
+    cy.get('#filters button[data-filter="high"]').click();
+
+    cy.window().then((win) => {
+      const tasks = JSON.parse(win.localStorage.getItem(STORAGE_KEY));
+      expect(tasks).to.have.length(2);
+    });
+  });
 });
